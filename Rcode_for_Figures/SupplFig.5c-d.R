@@ -70,7 +70,7 @@ p_flexInter.or_1 <- p_flexInter.or + ggtitle("Pearson's r = 0.965")+
 gp1 <- 
   read.xlsx(xlsxFile = file.path(pathbf2,"Draft/Suppl_Data_Coding", 
             "K562LG50ngXR28_comb-intBlocks_graph.xlsx"),
-            sheet = 3, skipEmptyRows = TRUE)
+            sheet = 2, skipEmptyRows = TRUE)
 #stack by grp
 gp2 <- gp1 %>%
   filter(Pack_grp %in% c("Original","Total")) %>% filter(Group!="15X") %>%
@@ -106,7 +106,7 @@ p1
 gp3 <- 
   read.xlsx(xlsxFile = file.path(pathbf2,"Draft/Suppl_Data_Coding", 
                                  "K562LG50ngXR28_comb-intBlocks_graph.xlsx"),
-            sheet = 4, skipEmptyRows = TRUE)
+            sheet = 3, skipEmptyRows = TRUE)
 #stack by grp
 gp4 <- gp3 %>%
   filter(Pack_grp %in% c("Original","Total")) %>%

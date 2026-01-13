@@ -1,4 +1,4 @@
-#Fig. 2
+#Fig. 2 and Suppl Fig. 2
 
 ######* load packages *######
 library(tidyr)
@@ -161,7 +161,7 @@ df_cnv2_trans <- data.table::dcast(setDT(df_cnv2), Var1 ~ Var2,value.var = "n_pe
 a1<- data.frame(Var1="Cytology test", Cancers="", Control="")
 a2<- data.frame(Var1="CNA test", Cancers="", Control="")
 
-dfm2_trans_all <- rbind(a1,df_cyto2_trans,a2,df_cnv2_trans)
+#dfm2_trans_all <- rbind(a1,df_cyto2_trans,a2,df_cnv2_trans)
 
 dfall_vis <- rbind(df_cyto,df_cnv)
 colnames(dfall_vis) <- c("Results","Diagnosis","Count","Method")
@@ -316,4 +316,140 @@ p_allu_allm <- ggarrange(p_allu2,p_allu3,
                          common.legend = T, legend="right",
                          ncol = 1, nrow = 2, heights = c(3, 1))
 p_allu_allm
+
+############## Suppl Fig. 2 #################
+res_cnv_chk <- within(res_diag_comb1, {
+  purity_cut03 <- NA
+  purity_cut03[Tumor_Purity_ichor >=0.03] <- "Positive"
+  purity_cut03[Tumor_Purity_ichor<0.03] <- "Negative"
+  
+  purity_cut05 <- NA
+  purity_cut05[Tumor_Purity_ichor >=0.05] <- "Positive"
+  purity_cut05[Tumor_Purity_ichor<0.05] <- "Negative"
+})
+
+df_cnv03 <- data.frame(BF_id=res_cnv_chk$BF_id,response=res_cnv_chk$purity_cut03,
+                     group="CNA analysis (cutoff 3%)")
+df_cnv05 <- data.frame(BF_id=res_cnv_chk$BF_id,response=res_cnv_chk$purity_cut05,
+                      group="CNA analysis (cutoff 5%)")
+
+df_standard <- data.frame(BF_id=res_cnv_chk$BF_id,response=res_cnv_chk$dx_cat.f,
+                          group="Diagnosis")
+df_comb <- rbind(df_cnv03,df_standard,df_cnv05)
+df_comb$freq=1
+
+response_order <- c("Cancers","Control","Benign","Unclear","Positive", "Negative") # Example order
+
+df_comb2 <- df_comb %>%
+  mutate(
+    group = factor(group, levels = c("CNA analysis (cutoff 3%)","Diagnosis", "CNA analysis (cutoff 5%)")),
+    response = factor(response, levels = response_order) # Order 'response' factor
+  ) %>% 
+  group_by(BF_id, group, response) %>%
+  summarise(freq = n(), .groups = 'drop')
+
+# Plotting with counts on strata
+p_allu1 <- ggplot(df_comb2,
+                  aes(x = group, stratum = response, alluvium = BF_id, y = freq,
+                      fill = response)) +
+  geom_stratum(alpha = 0.8) +
+  geom_flow(alpha = 0.7)+
+  geom_flow()+
+  # Add counts to the strata
+  geom_text(stat = "stratum", aes(label = after_stat(count)),
+            size = 3, color = "black", nudge_x = 0 # Adjust to move labels horizontally
+  ) +
+  geom_text(stat = "flow", aes(label = after_stat(count)), # Label with frequency
+            nudge_x = 0.2, size = 3, color = "black") + # Set label size and color
+  scale_fill_manual(values = c(
+    "Cancers"="#D1A980","Control"="#DEE8CE","Benign" = "#B2CD9C",
+    "Unclear"="grey70",
+    "Positive" = "#D25D5D", "Negative" = "#5E936C")) + #F3A26D "#D6A99D" #"#F08B51"
+  scale_x_discrete(expand = c(.15, .05)) +
+  labs(
+    title = NULL,
+    x = NULL,
+    y = NULL,
+    fill = "Response Status") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"),
+        axis.text.x = element_text(angle = 0, hjust = 1),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        legend.position = "bottom")
+p_allu1
+
+df_comb <- rbind(df_cnv03,df_cnv05)
+df_comb$freq=1
+
+df_comb3 <- df_comb %>%
+  mutate(
+    group = factor(group, levels = c("CNA analysis (cutoff 3%)", "CNA analysis (cutoff 5%)")),
+    response = factor(response, levels = response_order) # Order 'response' factor
+  ) %>% 
+  group_by(BF_id, group, response) %>%
+  summarise(freq = n(), .groups = 'drop')
+
+# Plotting with counts on strata
+p_allu3 <- ggplot(df_comb3,
+                  aes(x = group, stratum = response, alluvium = BF_id, y = freq,
+                      fill = response)) +
+  geom_stratum(alpha = 0.8) +
+  geom_flow(alpha = 0.7)+
+  geom_flow()+
+  # Add counts to the strata
+  geom_text(stat = "stratum", aes(label = after_stat(count)),
+            size = 3, color = "black", nudge_x = 0 # Adjust to move labels horizontally
+  ) +
+  geom_text(stat = "flow", aes(label = after_stat(count)), # Label with frequency
+            nudge_x = 0.2, size = 3, color = "black") + # Set label size and color
+  scale_fill_manual(values = c(
+    "Atypical" =  "#FAD691", "Benign" = "#B2CD9C",
+    "Malignant" = "#D6A99D",  "Suspicious" = "#5BC0DE", "Non-diagnostic"="grey70",
+    "Positive" = "#D25D5D", "Negative" = "#5E936C")) + 
+  scale_x_discrete(expand = c(.15, .05)) +
+  labs(x = NULL, y = NULL, fill = "Response Status") +
+  theme_minimal()
+p_allu3
+
+res_cnv_chk$pur_perc <- round(res_cnv_chk$Tumor_Purity_ichor*100,1)
+
+p_pur <- ggplot(data=res_cnv_chk) +
+  geom_boxplot(aes(x = dx_cat.f, y = pur_perc),width=0.4) + 
+  geom_beeswarm(aes(x = dx_cat.f, y = pur_perc),
+                cex=6, priority = "density", corral = "wrap") +
+  geom_hline(yintercept=3,color = "grey70", linetype="dashed", linewidth=0.5)+
+  geom_hline(yintercept=5,color = "grey70", linetype="dashed", linewidth=0.5)+
+  scale_y_log10(
+    breaks = c(1, 10, 100), # Define major tick marks
+    labels = c("1", "10", "100"), # Define labels for major ticks
+    guide = guide_axis_logticks() )+# Add minor log ticks
+  labs(y="Tumor fraction (%)",x="Group")+
+  theme(panel.background = element_blank(),
+        panel.border = element_rect(linewidth=1.1,color="black",fill=NA),
+        #text=element_text(size=15, face="bold"),
+        axis.text.x = element_text(face="bold",angle=40,hjust=1),
+        axis.text.y = element_text(face="bold"),
+        axis.title=element_text(face="bold"),
+        legend.position="none",
+        legend.title=element_blank(),
+        panel.spacing = unit(0.2, "lines")) 
+p_pur
+
+# Add a square area using annotate()
+p_pur2 <- p_pur + annotate("rect", xmin = 0, xmax = 5, ymin = 3, ymax = 5,
+             alpha = 0.3, fill = "red")
+p_pur2
+
+p_pur_all <- ggarrange(p_allu1,p_pur2,
+                         common.legend = F,
+                         ncol = 2, nrow = 1, widths = c(1.5, 1))
+p_pur_all
+
+pdf(file=file.path(pathbf2,"Output",
+                   paste0(str_sub(Sys.Date(), start = 3),
+                          "-all519samples_CNAcutoff.pdf")), 
+    width = 7, height = 4, useDingbats = FALSE)
+p_pur_all
+dev.off()
 

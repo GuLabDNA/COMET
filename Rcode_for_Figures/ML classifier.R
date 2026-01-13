@@ -26,6 +26,7 @@ library(writexl)
 #do parallel
 library(parallel)
 library(doParallel)
+library(foreach)
 library(doMC)
 library(HandTill2001) # Multiple Class Area under ROC Curve
 
@@ -394,21 +395,21 @@ RFres_TCGA <- function(i, seed){
   #9. Save results
   save(rf.scores,probs,y,ys,yp,score_compare2,errs,errp,
        file=file.path(pathbf2,"results_df",
-                      paste0(i,"-validation.cv.score.k5_136BFs_TCGA.XR.RData")))
+                      paste0(i,"-validation.cv.score.k5_BFs_TCGA.XR.RData")))
   
   write_xlsx(score_compare2, file.path(pathbf2,"results_df",
-                                       paste0(i,"-score.comp.k5_TCGA_136BFs_TCGA.XR.xlsx")),
+                                       paste0(i,"-score.comp.k5_TCGA_BFs_TCGA.XR.xlsx")),
              col_names = TRUE,format_headers = TRUE)
   
   
   write_xlsx(ca_cal, file.path(pathbf2,"results_df",
-                               paste0(i,"-score.comp.k5_TCGA_onlySamples.136BFs_TCGA.XR.xlsx")),
+                               paste0(i,"-score.comp.k5_TCGA_onlySamples.BFs_TCGA.XR.xlsx")),
              col_names = TRUE,format_headers = TRUE)
   
   pred_mat <- as.data.frame(probs)
   pred_mat$Sentrix_ID <- rownames(pred_mat)
   write_xlsx(pred_mat, file.path(pathbf2,"results_df",
-                                 paste0(i,"-score.comp.k5_TCGA_136BFs_matrix.xlsx")),
+                                 paste0(i,"-score.comp.k5_TCGA_BFs_matrix.xlsx")),
              col_names = TRUE,format_headers = TRUE)
   #score_compare has the calibrated and original score
   #yp is the calibrated predicted groups, ys is the original predicted groups
